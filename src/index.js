@@ -294,7 +294,6 @@ let game = new Game(GAME_WIDTH, GAME_HEIGHT);
 var fullScreenCanvas = document.querySelector('canvas');
 
 function fullScreen() {
-    evt.preventDefault()
     var el = document.getElementById('gameScreen')
     if (el.webkitRequestFullScreen) {
         el.webkitRequestFullScreen();
