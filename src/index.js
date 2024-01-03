@@ -97,9 +97,11 @@ class Player {
             x: 5,
             y: 5
         }
+        this.angle = 0
     }
 
     update() {
+        this.angle -= game.speed / 2
         if (game.jump && this.position.y == game.groundHeight - this.height) {
             this.velocity = game.jumpVelocity
             this.position.y -= this.velocity
@@ -116,6 +118,32 @@ class Player {
     }
 
     draw(ctx) {
+        ctx.save(); // Save the current state of the context
+        ctx.translate(this.position.x + this.width / 2, this.position.y + this.height / 2); // Move the rotation point to the center of the image
+        ctx.rotate((-this.angle * Math.PI) / 180); // Rotate by 70 degrees
+        ctx.drawImage(
+            this.image,
+            -this.width / 2,
+            -this.height / 2,
+            this.width,
+            this.height
+        );
+        ctx.restore()
+        //ctx.rect(this.position.x + this.hitboxPadding.x, this.position.y + this.hitboxPadding.y, this.position.x + this.width - this.hitboxPadding.x, this.position.y + this.height - this.hitboxPadding.y);
+    }
+}
+
+class Chicken {
+    constructor(game) {
+        this.game = game;
+        this.image = document.getElementById("chicken");
+        this.width = this.game.chickenSize;
+        this.height = this.game.chickenSize;
+        this.position = { x: game.gameWidth - this.width - game.chickenX, y: game.groundHeight - this.height }
+    }
+    update() {
+    }
+    draw(ctx) {
         ctx.drawImage(
             this.image,
             this.position.x,
@@ -123,12 +151,7 @@ class Player {
             this.width,
             this.height
         );
-        ctx.rect(this.position.x + this.hitboxPadding.x, this.position.y + this.hitboxPadding.y, this.position.x + this.width - this.hitboxPadding.x, this.position.y + this.height - this.hitboxPadding.y);
     }
-}
-
-class Chicken {
-
 }
 
 class Game {
@@ -152,6 +175,7 @@ class Game {
         this.timeStep = 25;
         this.accelerationStepSize = 50;
         this.accelerationSlowdownFactor = .95;
+        this.chicken = null
     }
 
     start() {
@@ -167,11 +191,13 @@ class Game {
         this.nextEgg = 5 * this.eggSize;
         this.gamestate = GAMESTATE.RUNNING;
         this.player = new Player(game)
+        this.chicken = new Chicken(game)
         this.gameObjects.push(this.player)
         this.timeStep = 25;
         this.accelerationSteps = 1;
         this.score = 0;
         this.accelerationFactor = .1;
+        this.offset = 0
     }
 
     update(timeLeft) {
@@ -181,6 +207,7 @@ class Game {
         ) {
             return 0;
         }
+        this.offset = (this.offset - this.speed / 2 + this.gameWidth) % this.gameWidth
         while (timeLeftGame >= this.timeStep) {
             this.gameObjects.forEach((object) =>
                 object.update()
@@ -191,7 +218,7 @@ class Game {
             if (this.nextEgg <= 0) {
                 this.nextEgg = (Math.floor(Math.random() * 10) + 6) * this.eggSize;
                 let position = {
-                    x: this.gameWidth,
+                    x: this.chicken.position.x,
                     y: game.groundHeight - this.eggSize
                 };
                 let egg = new Egg(game, position);
@@ -207,8 +234,11 @@ class Game {
     draw(ctx) {
         ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
         var bg = document.getElementById("bg");
-        ctx.drawImage(bg, 0, 0);
+        ctx.drawImage(bg, this.offset, 0);
+        ctx.drawImage(bg, this.offset - this.gameWidth, 0);
         this.gameObjects.forEach((object) => object.draw(ctx));
+        if (this.chicken)
+            this.chicken.draw(ctx)
 
         ctx.font = "bold 60px Arial";
         ctx.fillStyle = "white";
