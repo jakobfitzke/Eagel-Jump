@@ -30,12 +30,14 @@ const GAMESTATE = {
     GAMEOVER: 2,
 };
 
-/*function increase() {
-    if (game.gamestate === GAMESTATE.RUNNING) {
-        game.time += 0.01;
-        game.time = Math.round(game.time * 100) / 100
+function increase() {
+    game.score += 0.2
+    if (game.score > game.accelerationStepSize * game.accelerationSteps) {
+        game.accelerationSteps += 1
+        game.timeStep = game.accelerationFactor * game.timeStep
+        console.log(game.timeStep)
     }
-}*/
+}
 
 function detectCollision(a, b) {
     return !(
@@ -140,6 +142,11 @@ class Game {
         this.jumpVelocity = 20
         this.gravity = -1
         this.gameObjects = [];
+        this.jumpHeight = 128;
+        this.jumpLength = 128;
+        this.timeStep = 25;
+        this.accelerationStepSize = 100;
+        this.accelerationFactor = .9;
     }
 
     start() {
@@ -156,42 +163,51 @@ class Game {
         this.gamestate = GAMESTATE.RUNNING;
         this.player = new Player(game)
         this.gameObjects.push(this.player)
-        //setInterval(increase, 10);
+        this.timeStep = 25;
+        this.accelerationSteps = 1;
+        this.score = 0;
     }
 
-    update(deltaTime) {
+    update(timeLeft) {
+        let timeLeftGame = timeLeft
         if (
             this.gamestate === GAMESTATE.MENU || this.gamestate === GAMESTATE.GAMEOVER
         ) {
-            return;
+            return 0;
         }
-        this.gameObjects.forEach((object) =>
-            object.update(deltaTime)
-        );
+        while (timeLeftGame >= this.timeStep) {
+            this.gameObjects.forEach((object) =>
+                object.update()
+            );
 
-        this.eggs = this.eggs.filter((egg) => !egg.markedForDeletion);
-        this.nextEgg -= this.speed;
-        if (this.nextEgg <= 0) {
-            this.nextEgg = (Math.floor(Math.random() * 10) + 5) * this.eggSize;
-            let position = {
-                x: this.gameWidth,
-                y: game.groundHeight - this.eggSize
-            };
-            let egg = new Egg(game, position);
-            this.eggs.push(egg);
-            this.gameObjects.push(egg);
+            this.eggs = this.eggs.filter((egg) => !egg.markedForDeletion);
+            this.nextEgg -= this.speed;
+            if (this.nextEgg <= 0) {
+                this.nextEgg = (Math.floor(Math.random() * 10) + 5) * this.eggSize;
+                let position = {
+                    x: this.gameWidth,
+                    y: game.groundHeight - this.eggSize
+                };
+                let egg = new Egg(game, position);
+                this.eggs.push(egg);
+                this.gameObjects.push(egg);
+            }
+            increase()
+            timeLeftGame -= this.timeStep
         }
+        return timeLeftGame;
     }
 
     draw(ctx) {
+        ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
         var bg = document.getElementById("bg");
         ctx.drawImage(bg, 0, 0);
         this.gameObjects.forEach((object) => object.draw(ctx));
 
-        /*ctx.font = "bold 60px Arial";
+        ctx.font = "bold 60px Arial";
         ctx.fillStyle = "white";
         ctx.textAlign = "left";
-        ctx.fillText(this.time, 10, 55);*/
+        ctx.fillText(Math.round(game.score), 10, 55);
 
         if (this.gamestate === GAMESTATE.MENU) {
             ctx.rect(0, 0, this.gameWidth, this.gameHeight);
@@ -222,7 +238,7 @@ class Game {
             );
             ctx.font = "25px Arial";
             ctx.fillText(
-                "Du hast 0 Punkte",
+                "Du hast " + Math.round(this.score) + " Punkte",
                 this.gameWidth / 2,
                 this.gameHeight / 2 + 20
             );
@@ -274,13 +290,15 @@ fullScreenCanvas.addEventListener("mouseup", released);
 fullScreenCanvas.addEventListener("mousemove", function (evt) { moved(evt, fullScreenCanvas) });
 
 var lastTime = 0;
+var timeLeft = 0;
 
 function gameLoop(timestamp) {
     let deltaTime = timestamp - lastTime;
     lastTime = timestamp;
-    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    game.update(deltaTime);
+    timeLeft += deltaTime
+
+    timeLeft = game.update(timeLeft);
     game.draw(ctx);
 
     requestAnimationFrame(gameLoop);
