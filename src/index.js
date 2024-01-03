@@ -101,19 +101,21 @@ class Player {
     }
 
     update() {
-        this.angle -= game.speed / 2
         if (game.jump && this.position.y == game.groundHeight - this.height) {
             this.velocity = game.jumpVelocity
             this.position.y -= this.velocity
             this.velocity += game.gravity
+            this.angle -= game.speed * 0.3
         }
         else if (this.position.y < game.groundHeight - this.height) {
             this.position.y -= this.velocity
             this.velocity += game.gravity
+            this.angle -= game.speed * 0.3
         }
         else {
             this.position.y = game.groundHeight - this.height
             this.velocity = 0
+            this.angle -= game.speed * 0.6
         }
     }
 
@@ -207,8 +209,8 @@ class Game {
         ) {
             return 0;
         }
-        this.offset = (this.offset - this.speed / 2 + this.gameWidth) % this.gameWidth
         while (timeLeftGame >= this.timeStep) {
+            this.offset = (this.offset - this.speed + this.gameWidth) % this.gameWidth
             this.gameObjects.forEach((object) =>
                 object.update()
             );
