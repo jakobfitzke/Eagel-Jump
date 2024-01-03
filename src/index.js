@@ -34,7 +34,8 @@ function increase() {
     game.score += 0.2
     if (game.score > game.accelerationStepSize * game.accelerationSteps) {
         game.accelerationSteps += 1
-        game.timeStep = game.accelerationFactor * game.timeStep
+        game.accelerationFactor *= game.accelerationSlowdownFactor
+        game.timeStep *= (1 - game.accelerationFactor)
         console.log(game.timeStep)
     }
 }
@@ -145,8 +146,8 @@ class Game {
         this.jumpHeight = 128;
         this.jumpLength = 128;
         this.timeStep = 25;
-        this.accelerationStepSize = 100;
-        this.accelerationFactor = .9;
+        this.accelerationStepSize = 50;
+        this.accelerationSlowdownFactor = .9;
     }
 
     start() {
@@ -166,6 +167,7 @@ class Game {
         this.timeStep = 25;
         this.accelerationSteps = 1;
         this.score = 0;
+        this.accelerationFactor = .1;
     }
 
     update(timeLeft) {
@@ -183,7 +185,7 @@ class Game {
             this.eggs = this.eggs.filter((egg) => !egg.markedForDeletion);
             this.nextEgg -= this.speed;
             if (this.nextEgg <= 0) {
-                this.nextEgg = (Math.floor(Math.random() * 10) + 5) * this.eggSize;
+                this.nextEgg = (Math.floor(Math.random() * 10) + 6) * this.eggSize;
                 let position = {
                     x: this.gameWidth,
                     y: game.groundHeight - this.eggSize
@@ -270,7 +272,7 @@ function fullScreen() {
 function click() {
     console.log("a")
     if (game.gamestate === GAMESTATE.RUNNING) {
-
+        game.jump = true
     }
     else {
         game.start();
@@ -278,7 +280,7 @@ function click() {
 }
 
 function released() {
-
+    game.jump = false
 }
 
 function moved(evt, canvas) {
