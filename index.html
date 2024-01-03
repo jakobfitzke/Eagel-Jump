@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Template</title>
+  <meta charset="UTF-8" />
+  <style>
+    #gameScreen {
+      border: 1px solid black;
+    }
+
+    img {
+      display: none;
+    }
+
+    .fullscreenButton {
+      font-size: 10pt;
+      padding: 5pt;
+      color: rgb(100, 100, 100);
+      background-color: white;
+      font-weight: 600;
+      border-radius: 10px;
+      border-color: black;
+      text-shadow: 5pt;
+    }
+
+    .fullscreenButton:hover {
+      background-color: lightgray;
+    }
+
+    .fullscreenButton:active {
+      background-color: darkgray;
+    }
+  </style>
+</head>
+
+<body>
+  <img id="bg" src="assets/images/bg.png" />
+  <img id="eagel" src="assets/images/Eagel.png" />
+  <img id="chicken" src="assets/images/Chicken.png" />
+  <img id="egg" src="assets/images/Egg.png" />
+  <img id="angry" src="assets/images/Angry.png" />
+  <canvas id="gameScreen" width="1280" height="640" style="width: 90%;"></canvas>
+  <script src="src/index.js"></script>
+  <br />
+  <button onclick="fullScreen()" class="fullscreenButton">Vollbild</button>
+</body>
+
+</html>
