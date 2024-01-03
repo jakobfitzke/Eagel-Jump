@@ -270,7 +270,6 @@ function fullScreen() {
 }
 
 function click() {
-    event.preventDefault();
     if (game.gamestate === GAMESTATE.RUNNING) {
         game.score += 1000
         game.jump = true
@@ -282,7 +281,6 @@ function click() {
 }
 
 function released() {
-    event.preventDefault();
     game.jump = false
 }
 
