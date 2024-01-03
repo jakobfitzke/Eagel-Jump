@@ -270,7 +270,7 @@ function fullScreen() {
 }
 
 function click() {
-    console.log("a")
+    game.score += 1000
     if (game.gamestate === GAMESTATE.RUNNING) {
         game.jump = true
     }
