@@ -272,9 +272,11 @@ function fullScreen() {
 function click() {
     event.preventDefault();
     if (game.gamestate === GAMESTATE.RUNNING) {
+        game.score += 1000
         game.jump = true
     }
     else {
+        game.score -= 1000
         game.start();
     }
 }
