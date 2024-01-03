@@ -127,6 +127,10 @@ class Player {
     }
 }
 
+class Chicken {
+
+}
+
 class Game {
     constructor(gameWidth, gameHeight) {
         this.gameWidth = gameWidth;
@@ -260,6 +264,7 @@ let game = new Game(GAME_WIDTH, GAME_HEIGHT);
 var fullScreenCanvas = document.querySelector('canvas');
 
 function fullScreen() {
+    evt.preventDefault()
     var el = document.getElementById('gameScreen')
     if (el.webkitRequestFullScreen) {
         el.webkitRequestFullScreen();
@@ -269,18 +274,18 @@ function fullScreen() {
     }
 }
 
-function click() {
+function click(evt) {
+    evt.preventDefault()
     if (game.gamestate === GAMESTATE.RUNNING) {
-        game.score += 1000
         game.jump = true
     }
     else {
-        game.score -= 1000
         game.start();
     }
 }
 
-function released() {
+function released(evt) {
+    evt.preventDefault()
     game.jump = false
 }
 
@@ -290,6 +295,8 @@ function moved(evt, canvas) {
 
 fullScreenCanvas.addEventListener("mousedown", click);
 fullScreenCanvas.addEventListener("mouseup", released);
+fullScreenCanvas.addEventListener("touchstart", click);
+fullScreenCanvas.addEventListener("touchend", released);
 fullScreenCanvas.addEventListener("mousemove", function (evt) { moved(evt, fullScreenCanvas) });
 
 var lastTime = 0;
