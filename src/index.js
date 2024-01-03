@@ -147,7 +147,7 @@ class Game {
         this.jumpLength = 128;
         this.timeStep = 25;
         this.accelerationStepSize = 50;
-        this.accelerationSlowdownFactor = .9;
+        this.accelerationSlowdownFactor = .95;
     }
 
     start() {
@@ -270,7 +270,7 @@ function fullScreen() {
 }
 
 function click() {
-    game.score += 1000
+    event.preventDefault();
     if (game.gamestate === GAMESTATE.RUNNING) {
         game.jump = true
     }
@@ -280,6 +280,7 @@ function click() {
 }
 
 function released() {
+    event.preventDefault();
     game.jump = false
 }
 
