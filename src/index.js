@@ -332,6 +332,7 @@ class Game {
             let birdDistance = 5 + 4 / this.accelerationSteps;
             if (this.nextObstacle <= 0) {
                 this.nextObstacle = (Math.floor(Math.random() * (20 / game.accelerationSteps + 4)) + 5) * this.tileSize;
+                if (bird) this.nextObstacle += this.tileSize
                 if (Math.random() < .1) { // 1/10 chance for small pause
                     this.nextObstacle += 7 * this.tileSize
                 }
