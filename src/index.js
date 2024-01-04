@@ -31,7 +31,7 @@ const GAMESTATE = {
 };
 
 function increase() {
-    game.score += 0.07
+    game.score += 0.1
     if (game.score > game.accelerationStepSize * game.accelerationSteps) {
         game.accelerationSteps += 1
         game.accelerationFactor *= game.accelerationSlowdownFactor
@@ -242,8 +242,8 @@ class Game {
         this.groundHeight = this.gameHeight * 0.75;
         this.playerX = this.gameWidth * 0.1
         this.chickenX = this.gameWidth * 0.1
-        this.jumpVelocity = 11
-        this.gravity = -.075
+        this.jumpVelocity = 10
+        this.gravity = -.065
         this.gameObjects = [];
         this.obstacles = [];
         this.timeStep = 10;
@@ -295,7 +295,10 @@ class Game {
             this.nextObstacle -= this.speed;
             if (this.nextObstacle <= 0) {
                 this.nextObstacle = (Math.floor(Math.random() * (20 / game.accelerationSteps + 4)) + 5) * this.tileSize;
-                let rand = Math.random() - 1 / game.accelerationSteps
+                if (Math.random() < .2) { // additional 1/5 chance for min distance
+                    this.nextObstacle = 5 * this.tileSize
+                }
+                let rand = Math.random() - 1.5 / game.accelerationSteps
                 let obstacle
                 let position = {
                     x: this.chicken.position.x,
