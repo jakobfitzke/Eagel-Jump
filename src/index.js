@@ -304,7 +304,7 @@ class Game {
                     x: this.chicken.position.x,
                     y: game.groundHeight
                 };
-                if (rand > .8) {
+                if (rand > .75) {
                     obstacle = new BigEgg(game, position);
                 }
                 else if (rand > .5) {
