@@ -329,7 +329,7 @@ class Game {
             );
             this.obstacles = this.obstacles.filter((obstacle) => !obstacle.markedForDeletion);
             this.nextObstacle -= this.speed;
-            let birdDistance = 5 + 4 / this.accelerationSteps
+            let birdDistance = 5 + 4 / this.accelerationSteps;
             if (this.nextObstacle <= 0) {
                 this.nextObstacle = (Math.floor(Math.random() * (20 / game.accelerationSteps + 4)) + 5) * this.tileSize;
                 if (Math.random() < .1) { // 1/10 chance for small pause
@@ -344,7 +344,7 @@ class Game {
                     x: this.chicken.position.x,
                     y: game.groundHeight
                 };
-                if (rand > .75) {
+                if (rand > .75 && !bird) {
                     obstacle = new BigEgg(game, position);
                 }
                 else if (rand > .5) {
@@ -356,6 +356,7 @@ class Game {
                 this.nextObstacle += obstacle.width / this.tileSize
                 this.obstacles.push(obstacle);
                 this.gameObjects.push(obstacle);
+                this.bird = false;
             }
             else if ((this.nextObstacle <= birdDistance * this.tileSize) && (this.nextObstacle + this.speed >= birdDistance * this.tileSize)) {
                 if (Math.random() > 1 / this.accelerationSteps + .7) {
@@ -366,6 +367,7 @@ class Game {
                     let bird = new Bird(game, position);
                     this.obstacles.push(bird);
                     this.gameObjects.push(bird);
+                    this.bird = true;
                 }
             }
             increase()
