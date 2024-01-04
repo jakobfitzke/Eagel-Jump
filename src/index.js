@@ -301,7 +301,8 @@ class Game {
         this.timeStep = 10;
         this.accelerationStepSize = 50;
         this.accelerationSlowdownFactor = .95;
-        this.chicken = null
+        this.chicken = null;
+        this.birdNext = false;
     }
 
     start() {
@@ -324,7 +325,8 @@ class Game {
         this.accelerationSteps = 1;
         this.score = 0;
         this.accelerationFactor = .075;
-        this.offset = 0
+        this.offset = 0;
+        this.birdNext = false;
     }
 
     update(timeLeft) {
@@ -349,7 +351,7 @@ class Game {
             let birdDistance = 5 + 4 / this.accelerationSteps;
             if (this.nextObstacle <= 0) {
                 this.nextObstacle = (Math.floor(Math.random() * (20 / game.accelerationSteps + 4)) + 5) * this.tileSize;
-                if (bird) this.nextObstacle += this.tileSize
+                if (this.birdNext) this.nextObstacle += this.tileSize
                 if (Math.random() < .1) { // 1/10 chance for small pause
                     this.nextObstacle += 7 * this.tileSize
                 }
@@ -362,7 +364,7 @@ class Game {
                     x: this.chicken.position.x,
                     y: game.groundHeight
                 };
-                if (rand > .75 && !bird) {
+                if (rand > .75 && !this.birdNext) {
                     obstacle = new BigEgg(game, position);
                 }
                 else if (rand > .5) {
@@ -374,7 +376,7 @@ class Game {
                 this.nextObstacle += obstacle.width / this.tileSize
                 this.obstacles.push(obstacle);
                 this.gameObjects.push(obstacle);
-                this.bird = false;
+                this.birdNext = false;
             }
             else if ((this.nextObstacle <= birdDistance * this.tileSize) && (this.nextObstacle + this.speed >= birdDistance * this.tileSize)) {
                 if (Math.random() > 1 / this.accelerationSteps + .7) {
@@ -385,7 +387,7 @@ class Game {
                     let bird = new Bird(game, position);
                     this.obstacles.push(bird);
                     this.gameObjects.push(bird);
-                    this.bird = true;
+                    this.birdNext = true;
                 }
             }
             increase()
@@ -503,13 +505,14 @@ function gameLoop(timestamp) {
 
     timeLeft += deltaTime
 
-    if (game.gamestate === GAMESTATE.RUNNING) {
-        timeLeft = game.update(timeLeft);
-        game.draw(ctx);
-    }
-
     if (oldGamestate !== game.gamestate) {
         oldGamestate = game.gamestate;
+        game.draw(ctx);
+        timeLeft = 0;
+    }
+
+    if (game.gamestate === GAMESTATE.RUNNING) {
+        timeLeft = game.update(timeLeft);
         game.draw(ctx);
     }
 
