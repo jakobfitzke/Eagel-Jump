@@ -161,7 +161,9 @@ class Nest {
 class Bird {
     constructor(game, position) {
         this.game = game;
-        this.image = document.getElementById("bird");
+        this.image2 = document.getElementById("bird2");
+        this.image1 = document.getElementById("bird1");
+        this.image = document.getElementById("bird1");
         this.position = position;
         this.width = this.game.tileSize;
         this.height = this.game.tileSize;
@@ -184,6 +186,12 @@ class Bird {
     }
 
     draw(ctx) {
+        if (Date.now() % 500 > 250) {
+            this.image = this.image1;
+        }
+        else {
+            this.image = this.image2;
+        }
         ctx.drawImage(
             this.image,
             this.position.x,
@@ -247,7 +255,9 @@ class Player {
 class Chicken {
     constructor(game) {
         this.game = game;
-        this.image = document.getElementById("chicken");
+        this.image1 = document.getElementById("chicken1");
+        this.image2 = document.getElementById("chicken2");
+        this.image = document.getElementById("chicken1");
         this.width = this.game.chickenSize;
         this.height = this.game.chickenSize;
         this.position = { x: game.gameWidth - this.width - game.chickenX, y: game.groundHeight - this.height }
@@ -255,6 +265,12 @@ class Chicken {
     update() {
     }
     draw(ctx) {
+        if (Date.now() % 500 > 250) {
+            this.image = this.image1;
+        }
+        else {
+            this.image = this.image2;
+        }
         ctx.drawImage(
             this.image,
             this.position.x,
@@ -303,6 +319,7 @@ class Game {
         this.player = new Player(game)
         this.chicken = new Chicken(game)
         this.gameObjects.push(this.player)
+        this.gameObjects.push(this.chicken)
         this.timeStep = 10;
         this.accelerationSteps = 1;
         this.score = 0;
@@ -385,7 +402,6 @@ class Game {
         this.gameObjects.forEach((object) => object.draw(ctx));
         if (this.chicken)
             this.chicken.draw(ctx)
-
         ctx.font = "bold 60px Arial";
         ctx.fillStyle = "white";
         ctx.textAlign = "left";
@@ -479,6 +495,7 @@ fullScreenCanvas.addEventListener("mousemove", function (evt) { moved(evt, fullS
 var lastTime = 0;
 var timeLeft = 0;
 var oldGamestate = GAMESTATE.RUNNING;
+//#endregion
 
 function gameLoop(timestamp) {
     let deltaTime = timestamp - lastTime;
@@ -486,10 +503,8 @@ function gameLoop(timestamp) {
 
     timeLeft += deltaTime
 
-    timeLeft = game.update(timeLeft);
-    //game.draw(ctx);
-
     if (game.gamestate === GAMESTATE.RUNNING) {
+        timeLeft = game.update(timeLeft);
         game.draw(ctx);
     }
 
@@ -502,4 +517,3 @@ function gameLoop(timestamp) {
 }
 
 requestAnimationFrame(gameLoop);
-//#endregion
