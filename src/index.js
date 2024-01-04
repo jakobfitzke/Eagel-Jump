@@ -158,6 +158,42 @@ class Nest {
     }
 }
 
+class Bird {
+    constructor(game, position) {
+        this.game = game;
+        this.image = document.getElementById("bird");
+        this.position = position;
+        this.width = this.game.tileSize;
+        this.height = this.game.tileSize;
+        this.position.y -= this.height;
+        this.markedForDeletion = false;
+        this.hitboxPadding = {
+            x: 8,
+            y: 8
+        }
+    }
+
+    update() {
+        this.position.x -= game.speed;
+        if (this.position.x + this.width <= 0) {
+            this.markedForDeletion = true;
+        }
+        if (detectCollision(this, game.player)) {
+            game.gamestate = GAMESTATE.GAMEOVER;
+        }
+    }
+
+    draw(ctx) {
+        ctx.drawImage(
+            this.image,
+            this.position.x,
+            this.position.y,
+            this.width,
+            this.height
+        );
+    }
+}
+
 class Player {
     constructor(game) {
         this.game = game;
@@ -240,8 +276,8 @@ class Game {
         this.playerSize = 64;
         this.chickenSize = 64;
         this.groundHeight = this.gameHeight * 0.75;
-        this.playerX = this.gameWidth * 0.1
-        this.chickenX = this.gameWidth * 0.1
+        this.playerX = 2 * this.tileSize
+        this.chickenX = 2 * this.tileSize
         this.jumpVelocity = 10
         this.gravity = -.065
         this.gameObjects = [];
@@ -293,9 +329,13 @@ class Game {
             );
             this.obstacles = this.obstacles.filter((obstacle) => !obstacle.markedForDeletion);
             this.nextObstacle -= this.speed;
+            let birdDistance = 5 + 4 / this.accelerationSteps
             if (this.nextObstacle <= 0) {
                 this.nextObstacle = (Math.floor(Math.random() * (20 / game.accelerationSteps + 4)) + 5) * this.tileSize;
-                if (Math.random() < .2) { // additional 1/5 chance for min distance
+                if (Math.random() < .1) { // 1/10 chance for small pause
+                    this.nextObstacle += 7 * this.tileSize
+                }
+                else if (Math.random() < .2) { // additional 1/5 chance for min distance
                     this.nextObstacle = 5 * this.tileSize
                 }
                 let rand = Math.random() - 1.5 / game.accelerationSteps
@@ -316,6 +356,17 @@ class Game {
                 this.nextObstacle += obstacle.width / this.tileSize
                 this.obstacles.push(obstacle);
                 this.gameObjects.push(obstacle);
+            }
+            else if ((this.nextObstacle <= birdDistance * this.tileSize) && (this.nextObstacle + this.speed >= birdDistance * this.tileSize)) {
+                if (Math.random() > 1 / this.accelerationSteps + .7) {
+                    let position = {
+                        x: this.chicken.position.x + 3 * this.tileSize,
+                        y: game.groundHeight - 2 * this.tileSize
+                    }
+                    let bird = new Bird(game, position);
+                    this.obstacles.push(bird);
+                    this.gameObjects.push(bird);
+                }
             }
             increase()
             timeLeftGame -= this.timeStep
