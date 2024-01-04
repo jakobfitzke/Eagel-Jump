@@ -31,7 +31,7 @@ const GAMESTATE = {
 };
 
 function increase() {
-    game.score += 0.2
+    game.score += 0.07
     if (game.score > game.accelerationStepSize * game.accelerationSteps) {
         game.accelerationSteps += 1
         game.accelerationFactor *= game.accelerationSlowdownFactor
@@ -54,8 +54,9 @@ class Egg {
         this.game = game;
         this.image = document.getElementById("egg");
         this.position = position;
-        this.width = this.game.eggSize;
-        this.height = this.game.eggSize;
+        this.width = this.game.tileSize;
+        this.height = this.game.tileSize;
+        this.position.y -= this.height;
         this.markedForDeletion = false;
         this.hitboxPadding = {
             x: 16,
@@ -70,6 +71,78 @@ class Egg {
         }
         if (detectCollision(this, game.player)) {
             this.image = document.getElementById("angry")
+            game.gamestate = GAMESTATE.GAMEOVER
+        }
+    }
+
+    draw(ctx) {
+        ctx.drawImage(
+            this.image,
+            this.position.x,
+            this.position.y,
+            this.width,
+            this.height
+        );
+    }
+}
+
+class BigEgg {
+    constructor(game, position) {
+        this.game = game;
+        this.image = document.getElementById("bigEgg");
+        this.position = position;
+        this.width = this.game.tileSize;
+        this.height = this.game.tileSize * 2;
+        this.position.y -= this.height;
+        this.markedForDeletion = false;
+        this.hitboxPadding = {
+            x: 16,
+            y: 4
+        }
+    }
+
+    update() {
+        this.position.x -= game.speed;
+        if (this.position.x + this.width <= 0) {
+            this.markedForDeletion = true;
+        }
+        if (detectCollision(this, game.player)) {
+            game.gamestate = GAMESTATE.GAMEOVER
+        }
+    }
+
+    draw(ctx) {
+        ctx.drawImage(
+            this.image,
+            this.position.x,
+            this.position.y,
+            this.width,
+            this.height
+        );
+    }
+}
+
+class Nest {
+    constructor(game, position) {
+        this.game = game;
+        this.image = document.getElementById("nest");
+        this.position = position;
+        this.width = 2 * this.game.tileSize;
+        this.height = this.game.tileSize;
+        this.position.y -= this.height;
+        this.markedForDeletion = false;
+        this.hitboxPadding = {
+            x: 16,
+            y: 4
+        }
+    }
+
+    update() {
+        this.position.x -= game.speed;
+        if (this.position.x + this.width <= 0) {
+            this.markedForDeletion = true;
+        }
+        if (detectCollision(this, game.player)) {
             game.gamestate = GAMESTATE.GAMEOVER
         }
     }
@@ -104,12 +177,12 @@ class Player {
         if (game.jump && this.position.y == game.groundHeight - this.height) {
             this.velocity = game.jumpVelocity
             this.position.y -= this.velocity
-            this.velocity += game.gravity
+            this.velocity += game.gravity * game.speed
             this.angle -= game.speed * 0.3
         }
         else if (this.position.y < game.groundHeight - this.height) {
             this.position.y -= this.velocity
-            this.velocity += game.gravity
+            this.velocity += game.gravity * game.speed
             this.angle -= game.speed * 0.3
         }
         else {
@@ -162,19 +235,18 @@ class Game {
         this.gameHeight = gameHeight;
         this.gamestate = GAMESTATE.MENU;
         new InputHandler();
-        this.speed = 10;
-        this.eggSize = 64;
+        this.speed = 4;
+        this.tileSize = 64;
         this.playerSize = 64;
         this.chickenSize = 64;
         this.groundHeight = this.gameHeight * 0.75;
         this.playerX = this.gameWidth * 0.1
         this.chickenX = this.gameWidth * 0.1
-        this.jumpVelocity = 20
-        this.gravity = -1
+        this.jumpVelocity = 11
+        this.gravity = -.075
         this.gameObjects = [];
-        this.jumpHeight = 128;
-        this.jumpLength = 128;
-        this.timeStep = 25;
+        this.obstacles = [];
+        this.timeStep = 10;
         this.accelerationStepSize = 50;
         this.accelerationSlowdownFactor = .95;
         this.chicken = null
@@ -189,43 +261,58 @@ class Game {
         this.gameObjects = [];
         this.time = 0
         this.jump = false;
-        this.eggs = [];
-        this.nextEgg = 5 * this.eggSize;
+        this.obstacles = [];
+        this.nextObstacle = 5 * this.tileSize;
         this.gamestate = GAMESTATE.RUNNING;
         this.player = new Player(game)
         this.chicken = new Chicken(game)
         this.gameObjects.push(this.player)
-        this.timeStep = 25;
+        this.timeStep = 10;
         this.accelerationSteps = 1;
         this.score = 0;
-        this.accelerationFactor = .1;
+        this.accelerationFactor = .075;
         this.offset = 0
     }
 
     update(timeLeft) {
         let timeLeftGame = timeLeft
         if (
-            this.gamestate === GAMESTATE.MENU || this.gamestate === GAMESTATE.GAMEOVER
+            this.gamestate !== GAMESTATE.RUNNING
         ) {
             return 0;
         }
         while (timeLeftGame >= this.timeStep) {
+            if (
+                this.gamestate !== GAMESTATE.RUNNING
+            ) {
+                return 0;
+            }
             this.offset = (this.offset - this.speed + this.gameWidth) % this.gameWidth
             this.gameObjects.forEach((object) =>
                 object.update()
             );
-
-            this.eggs = this.eggs.filter((egg) => !egg.markedForDeletion);
-            this.nextEgg -= this.speed;
-            if (this.nextEgg <= 0) {
-                this.nextEgg = (Math.floor(Math.random() * 10) + 6) * this.eggSize;
+            this.obstacles = this.obstacles.filter((obstacle) => !obstacle.markedForDeletion);
+            this.nextObstacle -= this.speed;
+            if (this.nextObstacle <= 0) {
+                this.nextObstacle = (Math.floor(Math.random() * (20 / game.accelerationSteps + 4)) + 5) * this.tileSize;
+                let rand = Math.random() - 1 / game.accelerationSteps
+                let obstacle
                 let position = {
                     x: this.chicken.position.x,
-                    y: game.groundHeight - this.eggSize
+                    y: game.groundHeight
                 };
-                let egg = new Egg(game, position);
-                this.eggs.push(egg);
-                this.gameObjects.push(egg);
+                if (rand > .8) {
+                    obstacle = new BigEgg(game, position);
+                }
+                else if (rand > .5) {
+                    obstacle = new Nest(game, position);
+                }
+                else {
+                    obstacle = new Egg(game, position);
+                }
+                this.nextObstacle += obstacle.width / this.tileSize
+                this.obstacles.push(obstacle);
+                this.gameObjects.push(obstacle);
             }
             increase()
             timeLeftGame -= this.timeStep
@@ -293,6 +380,8 @@ const GAME_HEIGHT = 640;
 
 let game = new Game(GAME_WIDTH, GAME_HEIGHT);
 
+game.draw(ctx);
+
 var fullScreenCanvas = document.querySelector('canvas');
 
 function fullScreen() {
@@ -332,6 +421,7 @@ fullScreenCanvas.addEventListener("mousemove", function (evt) { moved(evt, fullS
 
 var lastTime = 0;
 var timeLeft = 0;
+var oldGamestate = GAMESTATE.RUNNING;
 
 function gameLoop(timestamp) {
     let deltaTime = timestamp - lastTime;
@@ -340,7 +430,16 @@ function gameLoop(timestamp) {
     timeLeft += deltaTime
 
     timeLeft = game.update(timeLeft);
-    game.draw(ctx);
+    //game.draw(ctx);
+
+    if (game.gamestate === GAMESTATE.RUNNING) {
+        game.draw(ctx);
+    }
+
+    if (oldGamestate !== game.gamestate) {
+        oldGamestate = game.gamestate;
+        game.draw(ctx);
+    }
 
     requestAnimationFrame(gameLoop);
 }
